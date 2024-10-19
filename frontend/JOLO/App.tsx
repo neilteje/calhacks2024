@@ -11,16 +11,23 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 const Tab = createBottomTabNavigator();
 
 const getTabBarIcon = (route: any, focused: boolean, color: string, size: number) => {
-  let iconName = 'home-outline';
+  let iconName: string = '';
 
-  if (route.name === 'Home') {
-    iconName = focused ? 'home' : 'home-outline';
-  } else if (route.name === 'Archive') {
-    iconName = focused ? 'albums' : 'albums-outline';
-  } else if (route.name === 'Profile') {
-    iconName = focused ? 'person' : 'person-outline';
-  } else if (route.name === 'Calendar') {
-    iconName = focused ? 'calendar' : 'calendar-outline';
+  switch (route.name) {
+    case 'Home':
+      iconName = focused ? 'home' : 'home-outline';
+      break;
+    case 'Archive':
+      iconName = focused ? 'albums' : 'albums-outline';
+      break;
+    case 'Profile':
+      iconName = focused ? 'person' : 'person-outline';
+      break;
+    case 'Calendar':
+      iconName = focused ? 'calendar' : 'calendar-outline';
+      break;
+    default:
+      iconName = 'home-outline';
   }
 
   return <Ionicons name={iconName} size={size} color={color} />;
