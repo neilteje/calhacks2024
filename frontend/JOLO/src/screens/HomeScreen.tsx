@@ -1,12 +1,62 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, SafeAreaView } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import AudioRecorderPlayer from 'react-native-audio-recorder-player';
+import SoundPulseVisualizer from '../components/SoundPulseVisualizer';
+
+const audioRecorderPlayer = new AudioRecorderPlayer();
+
+const getGreeting = (): string => {
+  const currentHour = new Date().getHours();
+  if (currentHour < 12) {
+    return 'Good morning, Neil!';
+  } else if (currentHour < 18) {
+    return 'Good afternoon, Neil!';
+  } else {
+    return 'Good evening, Neil!';
+  }
+};
+
+const getDate = (): string => {
+  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+  return new Date().toLocaleDateString('en-US', options);
+};
 
 const HomeScreen = () => {
+  const [recording, setRecording] = useState(false);
+  const [decibelLevel, setDecibelLevel] = useState(0);
+
+  const startRecording = async () => {
+    try {
+      audioRecorderPlayer.startRecorder().then(() => {
+          audioRecorderPlayer.addRecordBackListener((e) => {
+            setDecibelLevel(e.currentMetering || 0);
+          });
+        });
+        setRecording(true);
+      }
+    catch (error) {
+      console.error('Failed to start recording', error);
+    }
+  };
+  
+
+  const stopRecording = async () => {
+    try {
+      await audioRecorderPlayer.stopRecorder();
+      audioRecorderPlayer.removeRecordBackListener();
+      setRecording(false);
+      setDecibelLevel(0);
+    } catch (error) {
+      console.error('Failed to stop recording', error);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* Header */}
         <View style={styles.header}>
           <Image source={require('../assets/logo.png')} style={styles.logo} />
           <View style={styles.headerIcons}>
@@ -15,11 +65,13 @@ const HomeScreen = () => {
           </View>
         </View>
         
-        <Text style={styles.greeting}>Good afternoon, Neil</Text>
+        {/* Greetings */}
+        <Text style={styles.greeting}>{getGreeting()}</Text>
         <Text style={styles.subtitle}>Welcome back to JOLO.</Text>
         
+        {/* Daily Prompt */}
         <View style={styles.promptContainer}>
-          <Text style={styles.promptDate}>November 28, 2023</Text>
+          <Text style={styles.promptDate}>{getDate()}</Text>
           <Text style={styles.promptTitle}>What do I need to change about myself?</Text>
           <Text style={styles.promptDescription}>
             Lorem ipsum dolor sit amet consectetur. In lorem pretium nec enim nisl urna. 
@@ -28,15 +80,22 @@ const HomeScreen = () => {
           </Text>
         </View>
 
+        {/* Recording Section */}
         <View style={styles.journalInfo}>
           <Text style={styles.journalText}>Journal out Loud before today fades away</Text>
           <Text style={styles.timeLeft}>12 hours 44 minutes left</Text>
         </View>
         
-        <TouchableOpacity style={styles.recordButton}>
-          <Ionicons name="mic" size={24} color="#FFF" />
-          <Text style={styles.recordButtonText}>Tap to Record</Text>
-        </TouchableOpacity>
+        <View style={styles.recordingSection}>
+          <SoundPulseVisualizer decibelLevel={decibelLevel} />
+          <TouchableOpacity 
+            style={styles.recordButton} 
+            onPress={recording ? stopRecording : startRecording}
+          >
+            <Ionicons name={recording ? 'stop' : 'mic'} size={24} color="#FFF" />
+            <Text style={styles.recordButtonText}>{recording ? 'Stop Recording' : 'Tap to Record'}</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -61,8 +120,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   logo: {
-    width: 70,
-    height: 30,
+    width: 100, // Make logo bigger
+    height: 40,
     resizeMode: 'contain',
   },
   headerIcons: {
@@ -76,11 +135,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFF',
     marginTop: 20,
+    textAlign: 'left',
+    width: '100%',
+    paddingHorizontal: 10,
   },
   subtitle: {
     fontSize: 16,
     color: '#AAA',
     marginBottom: 20,
+    textAlign: 'left',
+    width: '100%',
+    paddingHorizontal: 10,
   },
   promptContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -121,6 +186,10 @@ const styles = StyleSheet.create({
     color: '#AAA',
     marginTop: 5,
   },
+  recordingSection: {
+    alignItems: 'center',
+    marginTop: 30,
+  },
   recordButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 30,
@@ -129,7 +198,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 30,
+    marginTop: 20,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
