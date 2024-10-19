@@ -3,10 +3,10 @@ import React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
 
 
-const SettingsScreen = () => {
+const CalendarScreen = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Settings</Text>
+      <Text style={styles.title}>Calendar</Text>
       <Text>Customize your JOLO experience here.</Text>
     </View>
   );
@@ -26,4 +26,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SettingsScreen;
+export default CalendarScreen;
