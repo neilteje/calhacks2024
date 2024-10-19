@@ -37,21 +37,14 @@ const App = (): React.JSX.Element => {
             tabBarActiveTintColor: '#FFF',
             tabBarInactiveTintColor: '#888',
             tabBarStyle: {
-              backgroundColor: '#000', // Set the background to black
+              backgroundColor: '#000',
               borderTopLeftRadius: 20,
               borderTopRightRadius: 20,
               overflow: 'hidden',
-              height: 60, // Adjust the height if needed
-              paddingBottom: 10, // Adjust padding for better icon alignment
+              height: 60,
+              paddingBottom: 10,
             },
-            headerStyle: {
-              backgroundColor: '#000', // Dark mode for header
-              elevation: 0, // Remove elevation shadow
-              shadowOpacity: 0,
-            },
-            headerTitleStyle: {
-              color: '#FFF',
-            },
+            headerShown: false,
           })}
         >
           <Tab.Screen name="Home" component={HomeScreen} />
