@@ -109,12 +109,13 @@ const CalendarScreen = () => {
       {selectedDay && (
         <View style={styles.infoBox}>
           <Text style={styles.infoText}>
-            On {new Date(selectedDay).toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })}, you were very excited about receiving your first internship offer.
+            On {new Date(selectedDay).toLocaleDateString(undefined, {
+    timeZone: 'UTC', // Ensure it uses UTC timezone
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })}, you were very excited about receiving your first internship offer.
           </Text>
           <TouchableOpacity onPress={playAudio} style={styles.audioButton}>
             <Text style={styles.audioButtonText}>{isPlaying ? 'Playing...' : 'Audio Play'}</Text>
