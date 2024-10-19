@@ -44,6 +44,7 @@ const App = (): React.JSX.Element => {
               height: 60, // Adjust the height if needed
               paddingBottom: 10, // Adjust padding for better icon alignment
             },
+            headerShown: false,
             headerStyle: {
               backgroundColor: '#000', // Dark mode for header
               elevation: 0, // Remove elevation shadow
@@ -57,7 +58,11 @@ const App = (): React.JSX.Element => {
           <Tab.Screen name="Home" component={HomeScreen} />
           <Tab.Screen name="Archive" component={ArchiveScreen} />
           <Tab.Screen name="Calendar" component={CalendarScreen} />
-          <Tab.Screen name="Profile" component={ProfileScreen} />
+          <Tab.Screen
+          name="Profile"
+          component={ProfileScreen}
+          initialParams={{ user: 'Neil', email:'Neil@uiuc.com' }} // Passing the prompt
+        />
         </Tab.Navigator>
       </NavigationContainer>
     </GestureHandlerRootView>
