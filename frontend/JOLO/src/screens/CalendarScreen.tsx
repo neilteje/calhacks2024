@@ -1,103 +1,197 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, Dimensions } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+// Import audio playback functionality
+import { Audio } from 'expo-av'; // Ensure to install expo-av if using Expo
 
-// Helper function to get the days of a given month
-const getDaysInMonth = (month: number, year: number) => {
-  const days = [];
-  const totalDays = new Date(year, month + 1, 0).getDate(); // Get last day of the month
+const CalendarScreen = () => {
+  const currentDate = new Date();
+  const formattedDate = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+  const [selectedDay, setSelectedDay] = useState<string | null>(formattedDate);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
 
-  for (let day = 1; day <= totalDays; day++) {
-    days.push({ key: `${year}-${month}-${day}`, day });
-  }
+  const daysInMonth = (year: number, month: number) =>
+    new Date(year, month + 1, 0).getDate();
 
-  return days;
-};
+  const generateDaysArray = (year: number, month: number) => {
+    const totalDays = daysInMonth(year, month);
+    const daysArray = [];
+    for (let day = 1; day <= totalDays; day++) {
+      const formatted = `${year}-${(month + 1).toString().padStart(2, '0')}-${day
+        .toString()
+        .padStart(2, '0')}`;
+      daysArray.push(formatted);
+    }
+    return daysArray;
+  };
 
-const Calendar = () => {
-  const [currentDate, setCurrentDate] = useState(new Date()); // Track current date
-  const [days, setDays] = useState([]);
+  const [currentMonth, setCurrentMonth] = useState(currentDate.getMonth());
+  const [currentYear, setCurrentYear] = useState(currentDate.getFullYear());
+  const daysArray = generateDaysArray(currentYear, currentMonth);
 
-  // Update the days in the month whenever the month changes
-  useEffect(() => {
-    const month = currentDate.getMonth();
-    const year = currentDate.getFullYear();
-    setDays(getDaysInMonth(month, year));
-  }, [currentDate]);
+  const handleDayPress = (day: string) => {
+    setSelectedDay(day);
+    setIsPlaying(false)
+  };
 
-  // Handle month navigation
-  const changeMonth = (delta: number) => {
-    const newDate = new Date(currentDate);
-    newDate.setMonth(currentDate.getMonth() + delta);
-    setCurrentDate(newDate);
+  const handlePreviousMonth = () => {
+    setCurrentMonth((prev) => (prev === 0 ? 11 : prev - 1));
+    if (currentMonth === 0) setCurrentYear((prev) => prev - 1);
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth((prev) => (prev === 11 ? 0 : prev + 1));
+    if (currentMonth === 11) setCurrentYear((prev) => prev + 1);
+  };
+
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  const screenWidth = Dimensions.get('window').width;
+  const buttonSize = screenWidth / 8 - 8; // Button size calculation to fit 7 columns
+
+  // Function to play audio
+  const playAudio = async () => {
+    //const { sound } = await Audio.Sound.createAsync(
+    //  require('./path/to/your/audio/file.mp3') // Replace with your audio file path
+    //);
+    //setSound(sound);
+    //await sound.playAsync();
+    setIsPlaying(!isPlaying);
+    //sound.setOnPlaybackStatusUpdate((status) => {
+      //if (status.didJustFinish) {
+        //setIsPlaying(false);
+      //}
+    //});
   };
 
   return (
     <View style={styles.container}>
-      {/* Month Navigation */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => changeMonth(-1)}>
-          <Ionicons name="chevron-back" size={24} color="#FFF" />
+        <TouchableOpacity onPress={handlePreviousMonth}>
+          <Text style={styles.headerButton}>{'<'}</Text>
         </TouchableOpacity>
-
         <Text style={styles.headerText}>
-          {currentDate.toLocaleString('default', { month: 'long' })}{' '}
-          {currentDate.getFullYear()}
+          {`${monthNames[currentMonth]} ${currentYear}`}
         </Text>
-
-        <TouchableOpacity onPress={() => changeMonth(1)}>
-          <Ionicons name="chevron-forward" size={24} color="#FFF" />
+        <TouchableOpacity onPress={handleNextMonth}>
+          <Text style={styles.headerButton}>{'>'}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Calendar Days */}
       <FlatList
-        data={days}
-        numColumns={7} // 7 columns for each day of the week
+        data={daysArray}
+        numColumns={7}
+        keyExtractor={(item) => item}
         renderItem={({ item }) => (
-          <View style={styles.dayContainer}>
-            <Text style={styles.dayText}>{item.day}</Text>
-          </View>
+          <TouchableOpacity
+            style={[
+              styles.dayButton,
+              { width: buttonSize, height: buttonSize }, // Dynamically set size
+              item === selectedDay ? styles.selectedDayButton : null,
+            ]}
+            onPress={() => handleDayPress(item)}
+          >
+            <Text
+              style={[
+                styles.dayText,
+                item === selectedDay ? styles.selectedDayText : null,
+              ]}
+            >
+              {item.split('-')[2]} {/* Display only the day */}
+            </Text>
+          </TouchableOpacity>
         )}
-        keyExtractor={(item) => item.key}
       />
+
+      {selectedDay && (
+        <View style={styles.infoBox}>
+          <Text style={styles.infoText}>
+            On {new Date(selectedDay).toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}, you were very excited about receiving your first internship offer.
+          </Text>
+          <TouchableOpacity onPress={playAudio} style={styles.audioButton}>
+            <Text style={styles.audioButtonText}>{isPlaying ? 'Playing...' : 'Audio Play'}</Text>
+          </TouchableOpacity>
+          <Text style={styles.transcribeText}>Transcribe of audio goes here.</Text>
+        </View>
+      )}
     </View>
   );
 };
 
-// Get the dimensions of the screen to adjust styles
-const { width } = Dimensions.get('window');
-const daySize = width / 7;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000', // Black background
-    paddingTop: 40,
-    marginBottom: 30
+    backgroundColor: '#000',
+    padding: 16,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 40,
+    marginBottom: 16,
   },
-  headerText: {
-    color: '#FFF', // White text
-    fontSize: 20,
+  headerButton: {
+    color: 'white',
+    fontSize: 24,
     fontWeight: 'bold',
   },
-  dayContainer: {
-    width: daySize, // Equal size for each day
-    height: daySize,
+  headerText: {
+    color: 'white',
+    fontSize: 20,
+  },
+  dayButton: {
+    margin: 4,
+    display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 8,
+    backgroundColor: '#333',
+  },
+  selectedDayButton: {
+    backgroundColor: 'white',
   },
   dayText: {
-    color: '#FFF', // White text
+    color: 'white',
     fontSize: 16,
+  },
+  selectedDayText: {
+    color: 'black',
+    fontWeight: 'bold',
+  },
+  infoBox: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: '#222',
+    borderRadius: 8,
+  },
+  infoText: {
+    color: 'white',
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  audioButton: {
+    padding: 8,
+    backgroundColor: '#555',
+    borderRadius: 4,
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  audioButtonText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  transcribeText: {
+    color: 'white',
+    fontSize: 14,
   },
 });
 
-export default Calendar;
+export default CalendarScreen;
