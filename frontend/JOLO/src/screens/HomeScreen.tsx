@@ -4,6 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import Vapi from '@vapi-ai/react-native';
 import SoundPulseVisualizer from '../components/SoundPulseVisualizer';
+import axios from 'axios';
 
 const audioRecorderPlayer = new AudioRecorderPlayer();
 const vapi = new Vapi("248735ad-a5b8-4690-bfb3-e607fc70026d");
@@ -29,8 +30,29 @@ const HomeScreen = () => {
   const [sessionActive, setSessionActive] = useState(false);
   const [decibelLevel, setDecibelLevel] = useState(0);
   const [_responseText, setResponseText] = useState("");
+  const [todaysQuestion, setTodaysQuestion] = useState("");
 
   useEffect(() => {
+    const fetchTodaysQuestion = async () => {
+      try {
+        const response = await axios.get('http://localhost:5001/api/questions');
+        const today = new Date().toISOString().split('T')[0];
+        const question = response.data.find((q: any) => {
+          const questionDate = new Date(q.createdAt).toISOString().split('T')[0];
+          return questionDate === today;
+        });
+        if (question) {
+          setTodaysQuestion(question.text);
+        } else {
+          setTodaysQuestion("No question available for today.");
+        }
+      } catch (error) {
+        console.error("Error fetching today's question:", error);
+      }
+    };
+
+    fetchTodaysQuestion();
+
     // VAPI event listeners
     vapi.on('call-start', () => console.log('Call has started'));
     vapi.on('call-end', () => console.log('Call has ended'));
@@ -72,17 +94,45 @@ const HomeScreen = () => {
     }
   };
 
-  const startAssistant = () => {
-    vapi.start("7ee9572b-2391-4fb6-ae4b-f968dadcd3be"); 
-    setSessionActive(true);
+  const startAssistant = async () => {
+    try {
+      // Start recording audio
+      await audioRecorderPlayer.startRecorder();
+      audioRecorderPlayer.addRecordBackListener(async (e) => {
+        if (e.currentMetering) {
+          vapi.send({
+            type: 'add-message',
+            message: {
+              role: 'user',
+              content: String(e.currentMetering || 0),
+            },
+          });
+        }
+      });
+  
+      // Start VAPI Assistant
+      vapi.start("7ee9572b-2391-4fb6-ae4b-f968dadcd3be");
+  
+      setSessionActive(true);
+    } catch (error) {
+      console.error('Error starting assistant:', error);
+    }
   };
-
-  const stopAssistant = () => {
-    vapi.stop();
-    setSessionActive(false);
+  
+  const stopAssistant = async () => {
+    try {
+      // Stop recording audio
+      await audioRecorderPlayer.stopRecorder();
+      audioRecorderPlayer.removeRecordBackListener();
+  
+      // Stop VAPI Assistant
+      vapi.stop();
+      setSessionActive(false);
+    } catch (error) {
+      console.error('Error stopping assistant:', error);
+    }
   };
-
-  return (
+    return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {/* Header */}
@@ -101,11 +151,9 @@ const HomeScreen = () => {
         {/* Daily Prompt */}
         <View style={styles.promptContainer}>
           <Text style={styles.promptDate}>{getDate()}</Text>
-          <Text style={styles.promptTitle}>What do I need to change about myself?</Text>
+          <Text style={styles.promptTitle}>Today's Prompt:</Text>
           <Text style={styles.promptDescription}>
-            Lorem ipsum dolor sit amet consectetur. In lorem pretium nec enim nisl urna. 
-            Justo arcu leo sed a sagittis non dictumst tellus. Convallis tellus auctor sem 
-            pulvinar eget in ultricies pulvinar mattis. Felis et at velit sit quis elit.
+            {todaysQuestion}
           </Text>
         </View>
 
@@ -127,12 +175,12 @@ const HomeScreen = () => {
         </View>
 
         {/* VAPI Assistant Button */}
-              <TouchableOpacity 
+        <TouchableOpacity 
           style={styles.vapiButton} 
           onPress={sessionActive ? stopAssistant : startAssistant}
-      >
+        >
           <Ionicons name="mic-circle-outline" size={30} color="#FFF" />
-      </TouchableOpacity>
+        </TouchableOpacity>
 
       </ScrollView>
     </SafeAreaView>
@@ -247,8 +295,8 @@ const styles = StyleSheet.create({
   },
   vapiButton: {
     position: 'absolute',
-    bottom: -40, // Adjust as needed
-    right: 20,  // Adjust as needed
+    bottom: -60,
+    right: 20, 
     width: 60,
     height: 60,
     borderRadius: 30,
