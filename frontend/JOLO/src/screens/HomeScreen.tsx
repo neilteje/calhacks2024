@@ -245,6 +245,87 @@ const HomeScreen = () => {
         >
           <Ionicons name="mic-circle-outline" size={30} color="#FFF" />
         </TouchableOpacity>
+        // Initialize WebSocket connection
+    useEffect(() => {
+        ws.current = new WebSocket('ws://localhost:8080');
+        ws.current.onopen = () => console.log('Connected to WebSocket');
+        ws.current.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+            if (message.type === 'CONFIRMATION') {
+                fetchEntries();
+            }
+        };
+        ws.current.onclose = () => console.log('WebSocket connection closed');
+        ws.current.onerror = (error) => console.error('WebSocket error:', error);
+
+        // Fetch existing entries when component mounts
+        fetchEntries();
+
+        return () => {
+            ws.current.close();
+        };
+    }, []);
+
+    // Fetch entries from backend
+    const fetchEntries = async () => {
+        try {
+            const response = await axios.get('http://localhost:3000/api/entries');
+            setEntries(response.data);
+        } catch (error) {
+            console.error('Error fetching entries:', error);
+        }
+    };
+
+    // Handle adding new entry
+    const handleAddEntry = () => {
+        if (!prompt || !response) {
+            alert('Please enter a prompt and response');
+            return;
+        }
+
+        const newEntry = { prompt, response };
+        ws.current.send(JSON.stringify({ type: 'NEW_ENTRY', entry: newEntry }));
+
+        setPrompt('');
+        setResponse('');
+    };
+
+    // Render item in FlatList
+    const renderItem = ({ item }) => (
+        <View style={styles.entryContainer}>
+            <Text style={styles.prompt}>{item.prompt}</Text>
+            <Text style={styles.response}>{item.response}</Text>
+        </View>
+    );
+
+    return (
+        <View style={styles.container}>
+            <Text style={styles.title}>Real-Time JOLO Entries</Text>
+            <TextInput
+                style={styles.input}
+                placeholder="Enter prompt"
+                value={prompt}
+                onChangeText={setPrompt}
+            />
+            <TextInput
+                style={styles.input}
+                placeholder="Enter response"
+                value={response}
+                onChangeText={setResponse}
+                multiline
+            />
+            <TouchableOpacity onPress={handleAddEntry} style={styles.addButton}>
+                <Text style={styles.buttonText}>Add Entry</Text>
+            </TouchableOpacity>
+
+            <FlatList
+                data={entries}
+                renderItem={renderItem}
+                keyExtractor={(item, index) => `${item.prompt}-${index}`}
+                contentContainerStyle={styles.listContainer}
+            />
+        </View>
+    );
 
       </ScrollView>
     </SafeAreaView>
