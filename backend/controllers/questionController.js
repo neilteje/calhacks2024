@@ -1,24 +1,49 @@
 const Question = require('../models/Question');
 
-// Add a new question
-exports.addQuestion = async (req, res) => {
-  try {
-    const newQuestion = new Question({ text: req.body.text });
-    await newQuestion.save();
-    res.status(201).json(newQuestion);
-  } catch (error) {
-    res.status(500).json({ message: 'Error adding question' });
-  }
+// Create a new question
+exports.createQuestion = async (req, res) => {
+    try {
+        const { text } = req.body;
+        const question = new Question({ text });
+        await question.save();
+        res.status(201).json(question);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to create question' });
+    }
 };
 
-// Fetch a random question
-exports.getRandomQuestion = async (req, res) => {
-  try {
-    const count = await Question.countDocuments();
-    const random = Math.floor(Math.random() * count);
-    const question = await Question.findOne().skip(random);
-    res.json(question);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching question' });
-  }
+// Get all questions
+exports.getAllQuestions = async (req, res) => {
+    try {
+        const questions = await Question.find();
+        res.status(200).json(questions);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to retrieve questions' });
+    }
+};
+
+// Get a specific question by ID
+exports.getQuestionById = async (req, res) => {
+    try {
+        const question = await Question.findById(req.params.id);
+        if (!question) {
+            return res.status(404).json({ error: 'Question not found' });
+        }
+        res.status(200).json(question);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to retrieve question' });
+    }
+};
+
+// Delete a question by ID
+exports.deleteQuestion = async (req, res) => {
+    try {
+        const question = await Question.findByIdAndDelete(req.params.id);
+        if (!question) {
+            return res.status(404).json({ error: 'Question not found' });
+        }
+        res.status(200).json({ message: 'Question deleted' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to delete question' });
+    }
 };

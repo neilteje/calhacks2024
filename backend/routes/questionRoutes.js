@@ -1,11 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const { addQuestion, getRandomQuestion } = require('../controllers/questionController');
+const questionController = require('../controllers/questionController');
 
-// Route to add a new question
-router.post('/add', addQuestion);
+// Create a new question
+router.post('/questions', questionController.createQuestion);
 
-// Route to get a random question
-router.get('/random', getRandomQuestion);
+// Get all questions
+router.get('/questions', questionController.getAllQuestions);
+
+// Get a question by ID
+router.get('/questions/:id', questionController.getQuestionById);
+
+// Delete a question by ID
+router.delete('/questions/:id', questionController.deleteQuestion);
 
 module.exports = router;
