@@ -1,9 +1,171 @@
-import React, { useState } from 'react';
-import { View, Text, Modal, StyleSheet, TouchableOpacity, Image, SafeAreaView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Modal, StyleSheet, TouchableOpacity, Image, SafeAreaView, ActivityIndicator } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { Slider } from '@react-native-assets/slider'
+import { Slider } from '@react-native-assets/slider';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import RightArrowIcon from 'react-native-vector-icons/FontAwesome';
+import axios from 'axios';
+
+type JournalEntryPrompt = {
+  id: string;
+  title: string;
+  category: string;
+  answers: string;
+  audioFile: string[];
+};
+
+const ArchiveScreen = () => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedEntry, setSelectedEntry] = useState<JournalEntryPrompt | null>(null);
+  const [isLoadingTranslation, setIsLoadingTranslation] = useState(false);
+  const [translatedAudio, setTranslatedAudio] = useState<string | null>(null);
+
+  const openModal = (entry: any) => {
+    setSelectedEntry(entry);
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+    setSelectedEntry(null);
+  };
+
+  const translateAudio = async (audioFile: string, targetLanguage: string) => {
+    setIsLoadingTranslation(true);
+    try {
+      const response = await axios.post('https://api.cartesia.ai/translate', {
+        audioUrl: audioFile,
+        targetLanguage,
+      });
+
+      if (response.data && response.data.translatedAudioUrl) {
+        setTranslatedAudio(response.data.translatedAudioUrl);
+      }
+    } catch (error) {
+      console.error("Error translating audio:", error);
+    } finally {
+      setIsLoadingTranslation(false);
+    }
+  };
+
+  const journalEntries = [
+    { id: '1', title: 'What do I need to change about myself?', category: 'Reflection', answers: '3 times', audioFile: ['test.mp3'] },
+    { id: '2', title: 'Am I taking care of myself physically?', category: 'Health', answers: '3 times', audioFile: ['test2.mp3'] },
+    { id: '3', title: 'Have I achieved my goals this week?', category: 'Goals', answers: '3 times', audioFile: ['test3.mp3'] },
+  ];
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.header}>
+          <Image source={require('../assets/logo.png')} style={styles.logo} />
+          <View style={styles.headerIcons}>
+            <Ionicons name="notifications-outline" size={24} color="#FFF" style={styles.icon} />
+            <Ionicons name="settings-outline" size={24} color="#FFF" style={styles.icon} />
+          </View>
+        </View>
+        
+        <Text style={styles.greeting}>Journal archives</Text>
+        
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Newest</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Oldest</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Category</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Random</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.archiveContainer}>
+          {journalEntries.map((entry) => (
+            <CardItem
+              key={entry.id}
+              title={entry.title}
+              category={entry.category}
+              answers={entry.answers}
+              openModal={openModal}
+              audioFile={entry.audioFile}
+            />
+          ))}
+        </View>
+
+        {selectedEntry && (
+          <PopUpMenu
+            selectedEntry={selectedEntry}
+            modalVisible={modalVisible}
+            closeModal={closeModal}
+            translateAudio={translateAudio}
+            isLoadingTranslation={isLoadingTranslation}
+            translatedAudio={translatedAudio}
+          />
+        )}
+
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+const PopUpMenu = (props: { 
+  selectedEntry: any, 
+  modalVisible: any, 
+  closeModal: any, 
+  translateAudio: (audioFile: string, targetLanguage: string) => void,
+  isLoadingTranslation: boolean,
+  translatedAudio: string | null
+}) => {
+  const handleTranslateClick = () => {
+    const { audioFile } = props.selectedEntry;
+    props.translateAudio(audioFile[0], 'fr'); // example: translating to French
+  };
+
+  return (
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={props.modalVisible}
+      onRequestClose={props.closeModal}
+    >
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <ScrollView 
+            contentContainerStyle={styles.scrollContainer} 
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+          >
+            <Text style={styles.greeting}>{props.selectedEntry.title}</Text>
+            <Text style={styles.description}>
+              Explore your thoughts in multiple languages.
+            </Text>
+
+            <TouchableOpacity style={styles.translateButton} onPress={handleTranslateClick}>
+              {props.isLoadingTranslation ? (
+                <ActivityIndicator size="small" color="#FFF" />
+              ) : (
+                <Text style={styles.buttonText}>Translate to French</Text>
+              )}
+            </TouchableOpacity>
+
+            {props.translatedAudio && (
+              <TouchableOpacity style={styles.playButton} onPress={() => {/* play translated audio */}}>
+                <Text style={styles.buttonText}>Play Translated Audio</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity style={styles.button} onPress={props.closeModal}>
+              <Text style={styles.buttonText}>Close</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+};
 
 type JournalEntryPrompt = {
   id: string;
@@ -149,6 +311,234 @@ const JournalEntry = () => {
           onValueChange={(value) => console.log(value)}
         />
         <TouchableOpacity style={styles.playButton}>
+          <Ionicons name="play" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.keywordsContainer}>
+        <View style={styles.keyword}><Text style={styles.keywordText}>keyword</Text></View>
+        <View style={styles.keyword}><Text style={styles.keywordText}>keyword</Text></View>
+        <View style={styles.keyword}><Text style={styles.keywordText}>keyword</Text></View>
+      </View>
+    </View>
+  );
+};
+
+type JournalEntryPrompt = {
+  id: string;
+  title: string;
+  category: string;
+  answers: string;
+  audioFile: string[];
+};
+
+const PostFileS3 = async (fileURI: any) => {
+  try {
+    const response = await fetch(fileURI);
+    const blob = await response.blob();
+
+    const result = await Storage.put('test3.mp3', blob, {
+      contentType: 'audio/mpeg',
+    });
+
+    console.log('Upload successful:', result);
+  } catch (error) {
+    console.error('Error uploading file:', error);
+  }
+};
+
+const GetFileS3 = async (fileName: string) => {
+  try {
+    const fileURL = await Storage.get(fileName, { level: 'public' });
+
+    const response = await axios.get(fileURL, { responseType: 'blob' });
+    const blob = response.data;
+
+    return fileURL;
+  } catch (error) {
+    console.error('Error fetching file:', error);
+    return null;
+  }
+};
+
+const ArchiveScreen = () => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedEntry, setSelectedEntry] = useState<JournalEntryPrompt | null>(null);
+
+  const openModal = (entry: any) => {
+    setSelectedEntry(entry);
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+    setSelectedEntry(null);
+  };
+
+  const journalEntries = [
+    { id: '1', title: 'What do I need to change about myself?', category: 'Reflection', answers: '3 times', audioFile: ['test.mp3', 'test2.mp3', 'test3.mp3'] },
+    { id: '2', title: 'Am I taking care of myself physically?', category: 'Health', answers: '3 times', audioFile: ['test.mp3', 'test2.mp3', 'test3.mp3'] },
+    { id: '3', title: 'Have I achieved my goals this week?', category: 'Goals', answers: '3 times', audioFile: ['test.mp3', 'test2.mp3', 'test3.mp3'] },
+  ];
+  
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <TouchableOpacity style={styles.button} onPress={() => PostFileS3('/Users/ritviksood/Desktop/jolo/calhacks2024/frontend/JOLO/files/test3.mp3')}>
+        <Text style={styles.buttonText}>Upload MP3</Text>
+      </TouchableOpacity>
+
+        <View style={styles.header}>
+          <Image source={require('../assets/logo.png')} style={styles.logo} />
+          <View style={styles.headerIcons}>
+            <Ionicons name="notifications-outline" size={24} color="#FFF" style={styles.icon} />
+            <Ionicons name="settings-outline" size={24} color="#FFF" style={styles.icon} />
+          </View>
+        </View>
+        
+        <Text style={styles.greeting}>Journal archives</Text>
+        
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Newest</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Oldest</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Category</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Random</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.archiveContainer}>
+          {journalEntries.map((entry) => (
+            <CardItem
+              key={entry.id}
+              title={entry.title}
+              category={entry.category}
+              answers={entry.answers}
+              openModal={openModal}
+              audioFile={entry.audioFile}
+            />
+          ))}
+        </View>
+
+        {selectedEntry && (
+          <PopUpMenu
+            selectedEntry={selectedEntry}
+            modalVisible={modalVisible}
+            closeModal={closeModal}
+          />
+        )}
+
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+const CardItem = (props: { key: string, title: string, category: string, answers: string, openModal: (entry: any) => void , audioFile: string[]}) => {
+  const { title, category, answers, openModal, audioFile } = props;
+
+  return (
+    <TouchableOpacity style={styles.card} onPress={() => openModal({ title, category, answers, audioFile })}>
+      <View style={styles.cardTextContainer}>
+        <Text style={styles.title}>{props.title}</Text>
+        <Text style={styles.cardSubtitle}>Category: {props.category}</Text>
+        <Text style={styles.cardSubtitle}>Answers: {props.answers}</Text>
+      </View>
+      <RightArrowIcon name="chevron-right" size={20} color="black" />
+    </TouchableOpacity>
+  );
+};
+
+const PopUpMenu = (props: { selectedEntry: any, modalVisible: any, closeModal: any }) => {
+  return (
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={props.modalVisible}
+      onRequestClose={props.closeModal}
+    >
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <ScrollView 
+            contentContainerStyle={styles.scrollContainer} 
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+          >
+            <Text style={styles.greeting}>{props.selectedEntry.title}</Text>
+            <Text style={styles.description}>
+              Lorem ipsum dolor sit amet consectetur. In lorem pretium nec enim nisl urna. Justo arcu leo sed a sagittis non dictumst tellus.
+            </Text>
+            
+            <JournalEntry audioFile={props.selectedEntry.audioFile[0]} />
+            <JournalEntry audioFile={props.selectedEntry.audioFile[1]} />
+            <JournalEntry audioFile={props.selectedEntry.audioFile[2]} />
+            <TouchableOpacity style={styles.button} onPress={props.closeModal}>
+              <Text style={styles.buttonText}>Close</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+const JournalEntry = (props: { audioFile: any }) => {
+  const [audioURL, setAudioURL] = useState<string | null>(null);
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+
+  useEffect(() => {
+    const fetchAudioFile = async () => {
+      try {
+        const url = await Storage.get(props.audioFile, { level: 'public' });
+        setAudioURL(url);
+      } catch (error) {
+        console.error('Error fetching audio file:', error);
+      }
+    };
+
+    if (props.audioFile) fetchAudioFile();
+  }, [props.audioFile]);
+
+  const playAudio = async () => {
+    try {
+      if (!audioURL) {
+        console.error('Audio URL is null.');
+        return;
+      }
+
+      if (sound) {
+        await sound.unloadAsync();
+      }
+      console.log("here");
+      const { sound: newSound } = await Audio.Sound.createAsync({ uri: audioURL });
+      setSound(newSound);
+      await newSound.playAsync();
+    } catch (error) {
+      console.error('Error playing audio:', error);
+    }
+  };
+
+  return (
+    <View style={styles.entrySection}>
+      <Text style={styles.date}>Nov 28, 2023</Text>
+      <View style={styles.sliderContainer}>
+        <Slider
+          style={styles.slider}
+          minimumValue={0}
+          maximumValue={1}
+          minimumTrackTintColor="white"
+          maximumTrackTintColor="#555555"
+          thumbTintColor="white"
+          value={0.5}
+          onValueChange={(value) => console.log(value)}
+        />
+        <TouchableOpacity style={styles.playButton} onPress={playAudio}>
           <Ionicons name="play" size={24} color="white" />
         </TouchableOpacity>
       </View>
