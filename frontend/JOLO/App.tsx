@@ -33,39 +33,39 @@ const getTabBarIcon = (route: any, focused: boolean, color: string, size: number
   return <Ionicons name={iconName} size={size} color={color} />;
 };
 
+import { StatusBar } from 'react-native';
+
 const App = (): React.JSX.Element => {
-  return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <NavigationContainer theme={DarkTheme}>
-        <Tab.Navigator
-          initialRouteName="Home"
-          screenOptions={({ route }) => ({
-            tabBarIcon: ({ focused, color, size }) => getTabBarIcon(route, focused, color, size),
-            tabBarActiveTintColor: '#FFF',
-            tabBarInactiveTintColor: '#888',
-            tabBarStyle: {
-              backgroundColor: '#000',
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
-              overflow: 'hidden',
-              height: 60,
-              paddingBottom: 10,
-            },
-            headerShown: false,
-          })}
-        >
-          <Tab.Screen name="Home" component={HomeScreen} />
-          <Tab.Screen name="Archive" component={ArchiveScreen} />
-          <Tab.Screen name="Calendar" component={CalendarScreen} />
-          <Tab.Screen
-          name="Profile"
-          component={ProfileScreen}
-          initialParams={{ user: 'Neil', email:'Neil@uiuc.com' }} // Passing the prompt
-        />
-        </Tab.Navigator>
-      </NavigationContainer>
-    </GestureHandlerRootView>
-  );
+    return (
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            <NavigationContainer theme={DarkTheme}>
+                <StatusBar barStyle="light-content" backgroundColor="#000" /> 
+                <Tab.Navigator
+                    initialRouteName="Home"
+                    screenOptions={({ route }) => ({
+                        tabBarIcon: ({ focused, color, size }) => getTabBarIcon(route, focused, color, size),
+                        tabBarActiveTintColor: '#FFF',
+                        tabBarInactiveTintColor: '#888',
+                        tabBarStyle: {
+                            backgroundColor: '#000',
+                            borderTopLeftRadius: 0,
+                            borderTopRightRadius: 0,
+                            overflow: 'hidden',
+                            height: 60,
+                            paddingBottom: 10,
+                            borderTopWidth: 0, 
+                        },
+                        headerShown: false,
+                    })}
+                >
+                    <Tab.Screen name="Home" component={HomeScreen} />
+                    <Tab.Screen name="Archive" component={ArchiveScreen} />
+                    <Tab.Screen name="Calendar" component={CalendarScreen} />
+                    <Tab.Screen name="Profile" component={ProfileScreen} initialParams={{ user: 'Neil Teje', email: 'nteje2@illinois.edu' }} />
+                </Tab.Navigator>
+            </NavigationContainer>
+        </GestureHandlerRootView>
+    );
 };
 
 export default App;

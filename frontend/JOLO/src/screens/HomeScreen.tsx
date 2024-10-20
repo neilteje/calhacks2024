@@ -127,12 +127,13 @@ const HomeScreen = () => {
         </View>
 
         {/* VAPI Assistant Button */}
-        <TouchableOpacity 
+              <TouchableOpacity 
           style={styles.vapiButton} 
           onPress={sessionActive ? stopAssistant : startAssistant}
-        >
-          <Ionicons name="chatbubble-ellipses-outline" size={28} color="#FFF" />
-        </TouchableOpacity>
+      >
+          <Ionicons name="mic-circle-outline" size={30} color="#FFF" />
+      </TouchableOpacity>
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -246,12 +247,12 @@ const styles = StyleSheet.create({
   },
   vapiButton: {
     position: 'absolute',
-    bottom: 20,
-    right: 20,
+    bottom: -40, // Adjust as needed
+    right: 20,  // Adjust as needed
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red background for visibility
+    backgroundColor: 'rgba(255, 0, 0, 0.7)',
     alignItems: 'center',
     justifyContent: 'center',
   },

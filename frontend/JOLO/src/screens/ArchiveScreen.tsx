@@ -104,26 +104,32 @@ const CardItem = (props: { key: string, title: string, category: string, answers
 const PopUpMenu = (props: { selectedEntry: any, modalVisible: any, closeModal: any }) => {
   return (
     <Modal
-    animationType="slide"
-    transparent={true}
-    visible={props.modalVisible}
-    onRequestClose={props.closeModal}
-  >
-    <View style={styles.modalContainer}>
-      <View style={styles.modalContent}>
-        <Text style={styles.greeting}>{props.selectedEntry.title}</Text>
-        <Text style={styles.description}>
-          Lorem ipsum dolor sit amet consectetur. In lorem pretium nec enim nisl urna. Justo arcu leo sed a sagittis non dictumst tellus.
-        </Text>
-        <JournalEntry />
-        <JournalEntry />
-        <JournalEntry />
-        <TouchableOpacity style={styles.button} onPress={props.closeModal}>
-          <Text style={styles.buttonText}>Close</Text>
-        </TouchableOpacity>
+      animationType="slide"
+      transparent={true}
+      visible={props.modalVisible}
+      onRequestClose={props.closeModal}
+    >
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <ScrollView 
+            contentContainerStyle={styles.scrollContainer} 
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+          >
+            <Text style={styles.greeting}>{props.selectedEntry.title}</Text>
+            <Text style={styles.description}>
+              Lorem ipsum dolor sit amet consectetur. In lorem pretium nec enim nisl urna. Justo arcu leo sed a sagittis non dictumst tellus.
+            </Text>
+            <JournalEntry />
+            <JournalEntry />
+            <JournalEntry />
+            <TouchableOpacity style={styles.button} onPress={props.closeModal}>
+              <Text style={styles.buttonText}>Close</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
       </View>
-    </View>
-  </Modal>
+    </Modal>
   );
 };
 
@@ -165,6 +171,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingBottom: 30,
+    
   },
   header: {
     flexDirection: 'row',
@@ -199,6 +206,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+    width: '100%',
     paddingVertical: 15,
   },
   button: {
@@ -208,8 +216,6 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     paddingVertical: 8,
     paddingHorizontal: 10,
-    marginLeft: 10,
-    marginRight: 10,
     alignItems: 'center',
   },
   buttonText: {
