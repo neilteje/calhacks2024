@@ -76,7 +76,7 @@ export async function GET(req: NextRequest) {
         </div>
 
         <img
-          src={`${siteConfig.url}/iphone.png`}
+          src={`${siteConfig.url}/Recording1.png`}
           width={900}
           style={{
             position: "relative",

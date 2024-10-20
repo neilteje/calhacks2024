@@ -11,7 +11,7 @@ export const BLUR_FADE_DELAY = 0.15;
 
 export const siteConfig = {
   name: "JOLO",
-  description: "talk to take notes.",
+  description: "speak first, write later.",
   cta: "Download App",
   url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   keywords: ["Voice Notes", "Speech-to-Text", "Productivity", "Mobile App"],
@@ -63,22 +63,22 @@ export const siteConfig = {
     {
       id: 1,
       text: "Easily express your thoughts with hands-free voice journaling.",
-      image: "/iphone.png",
+      image: "/HomeScreen.png",
     },
     {
       id: 2,
       text: "Gain insights into your emotions with AI-powered feedback.",
-      image: "/iphone.png",
+      image: "/DetailedArchive.png",
     },
     {
       id: 3,
       text: "Build consistency with engaging daily prompts and gamified streaks.",
-      image: "/iphone.png",
+      image: "/DetailedCalendar.png",
     },
     {
       id: 4,
       text: "Keep your entries secure and accessible with cloud sync.",
-      image: "/iphone.png",
+      image: "/Recording.png",
     },
   ],
 
@@ -125,36 +125,33 @@ export const siteConfig = {
       question: "How accurate is the speech-to-text conversion?",
       answer: (
         <span>
-          Talky uses advanced AI algorithms to provide high accuracy in
-          speech-to-text conversion. Our Pro plan offers enhanced accuracy with
-          continuous improvements.
+        JOLO uses multiple industry grade APIs like Humes Emotional EV2, Cartesias TTS, DeepGrams API as well as VAPIs assistant tool to handle all speech and text relations for a smooth, real-time experience.
         </span>
       ),
     },
     {
-      question: "Can I use Talky offline?",
+      question: "Can I use JOLO offline?",
       answer: (
         <span>
-          Yes, you can record voice notes offline. The transcription and sync
-          will occur when you&apos;re back online.
+          Yes, you can record JOLO or write to JOLO offline!
         </span>
       ),
     },
     {
-      question: "What languages does Talky support?",
+      question: "What languages does JOLO support?",
       answer: (
         <span>
           Talky supports over 30 languages for voice-to-text conversion,
           including English, Spanish, French, German, and Mandarin. We&apos;re
-          constantly adding more languages.
+          constantly adding more languages. All thanks to Cartesia!
         </span>
       ),
     },
     {
-      question: "How secure are my notes?",
+      question: "How secure are my JOLOs?",
       answer: (
         <span>
-          We take security seriously. All your notes are encrypted end-to-end
+          We take security seriously. All your JOLO entries are encrypted end-to-end
           and stored securely in the cloud. Only you have access to your notes
           unless you choose to share them.
         </span>
@@ -164,8 +161,8 @@ export const siteConfig = {
       question: "Can I export my notes to other formats?",
       answer: (
         <span>
-          Absolutely! Talky allows you to export your notes in various formats
-          including TXT, PDF, and DOC. You can also integrate with popular
+          Absolutely! JOLO allows you to export your notes in various formats
+          including MP3, TXT, PDF, and DOC. You can also integrate with popular
           note-taking apps.
         </span>
       ),

@@ -552,6 +552,204 @@ const JournalEntry = (props: { audioFile: any }) => {
   );
 };
 
+type JournalEntryPrompt = {
+  id: string;
+  title: string;
+  category: string;
+  answers: string;
+  keywords?: string[];
+};
+
+const ArchiveScreen = () => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedEntry, setSelectedEntry] = useState<JournalEntryPrompt | null>(null);
+);
+
+  useEffect(() => {
+    fetchKeywordsForEntries();
+  }, []);
+
+  const fetchKeywordsForEntries = async () => {
+    try {
+      const updatedEntries = await Promise.all(
+        journalEntries.map(async (entry) => {
+          const keywords = await fetchKeywords(entry.answers);
+          return { ...entry, keywords };
+        })
+      );
+      setJournalEntries(updatedEntries);
+    } catch (error) {
+      console.error('Error fetching keywords:', error);
+    }
+  };
+
+  const fetchKeywords = async (text: string) => {
+    try {
+      // Replace with the actual Hyperbolic API endpoint
+      const response = await axios.post('https://api.hyperbolic.com/get-keywords', { text });
+
+      if (response.data.keywords) {
+        return response.data.keywords;
+      } else {
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching keywords from Hyperbolic API:', error);
+      return [];
+    }
+  };
+
+  const openModal = (entry: JournalEntryPrompt) => {
+    setSelectedEntry(entry);
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+    setSelectedEntry(null);
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.header}>
+          <Image source={require('../assets/logo.png')} style={styles.logo} />
+          <View style={styles.headerIcons}>
+            <Ionicons name="notifications-outline" size={24} color="#FFF" style={styles.icon} />
+            <Ionicons name="settings-outline" size={24} color="#FFF" style={styles.icon} />
+          </View>
+        </View>
+        
+        <Text style={styles.greeting}>Journal archives</Text>
+        
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Newest</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Oldest</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Category</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Random</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.archiveContainer}>
+          {journalEntries.map((entry) => (
+            <CardItem
+              key={entry.id}
+              title={entry.title}
+              category={entry.category}
+              answers={entry.answers}
+              keywords={entry.keywords}
+              openModal={openModal}
+            />
+          ))}
+        </View>
+
+        {selectedEntry && (
+          <PopUpMenu
+            selectedEntry={selectedEntry}
+            modalVisible={modalVisible}
+            closeModal={closeModal}
+          />
+        )}
+
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+const CardItem = (props: { title: string, category: string, answers: string, keywords?: string[], openModal: (entry: any) => void }) => {
+  const { title, category, answers, keywords, openModal } = props;
+
+  return (
+    <TouchableOpacity style={styles.card} onPress={() => openModal({ title, category, answers, keywords })}>
+      <View style={styles.cardTextContainer}>
+        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.cardSubtitle}>Category: {category}</Text>
+        <Text style={styles.cardSubtitle}>Answers: {answers}</Text>
+        {keywords && (
+          <View style={styles.keywordsContainer}>
+            {keywords.map((keyword, index) => (
+              <View key={index} style={styles.keyword}>
+                <Text style={styles.keywordText}>{keyword}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+      <RightArrowIcon name="chevron-right" size={20} color="black" />
+    </TouchableOpacity>
+  );
+};
+
+const PopUpMenu = (props: { selectedEntry: any, modalVisible: any, closeModal: any }) => {
+  return (
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={props.modalVisible}
+      onRequestClose={props.closeModal}
+    >
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <ScrollView 
+            contentContainerStyle={styles.scrollContainer} 
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+          >
+            <Text style={styles.greeting}>{props.selectedEntry.title}</Text>
+            <Text style={styles.description}>
+              Lorem ipsum dolor sit amet consectetur. In lorem pretium nec enim nisl urna. Justo arcu leo sed a sagittis non dictumst tellus.
+            </Text>
+            <JournalEntry keywords={props.selectedEntry.keywords} />
+            <TouchableOpacity style={styles.button} onPress={props.closeModal}>
+              <Text style={styles.buttonText}>Close</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+const JournalEntry = (props: { keywords?: string[] }) => {
+  return (
+    <View style={styles.entrySection}>
+      <Text style={styles.date}>Nov 28, 2023</Text>
+      <View style={styles.sliderContainer}>
+        <Slider
+          style={styles.slider}
+          minimumValue={0}
+          maximumValue={1}
+          minimumTrackTintColor="white"
+          maximumTrackTintColor="#555555"
+          thumbTintColor="white"
+          value={0.5}
+          onValueChange={(value) => console.log(value)}
+        />
+        <TouchableOpacity style={styles.playButton}>
+          <Ionicons name="play" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
+
+      {props.keywords && (
+        <View style={styles.keywordsContainer}>
+          {props.keywords.map((keyword, index) => (
+            <View key={index} style={styles.keyword}>
+              <Text style={styles.keywordText}>{keyword}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -107,29 +107,29 @@ export function FeatureHighlight() {
       title: "Voice-First Journaling",
       description:
         "Easily capture your thoughts by speaking instead of typing. JOLO lets you talk it out, making self-reflection quick and intuitive.",
-      imageSrc: "/iphone.png",
+      imageSrc: "/Recording.png",
       direction: "rtl" as const,
     },
     {
       title: "AI-Powered Emotional Insights",
       description:
         "Our advanced AI analyzes your voice entries to provide real-time feedback on your mood and emotions, helping you gain deeper self-awareness.",
-      imageSrc: "/iphone.png",
+    imageSrc: "/DetailedArchive.png",
       direction: "ltr" as const,
     },
     {
       title: "Gamified Progress Tracking",
       description:
         "Stay motivated with streaks, badges, and personalized achievements. JOLO turns self-reflection into an engaging and rewarding experience.",
-      imageSrc: "/iphone.png",
-      direction: "rtl" as const,
+        imageSrc: "/HomeScreen.png",
+        direction: "rtl" as const,
     },
     {
       title: "Time-Based Prompts",
       description:
         "Receive daily prompts at the same time across the world to guide your reflections, making it easy to build a consistent journaling habit.",
-      imageSrc: "/iphone.png",
-      direction: "ltr" as const,
+        imageSrc: "/CalendarView.png",
+        direction: "ltr" as const,
     },
   ];
 

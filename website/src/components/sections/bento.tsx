@@ -12,7 +12,7 @@ const bentoItems = [
     title: "Voice-First Journaling",
     content:
       "Easily capture your thoughts by speaking instead of writing. JOLO makes self-reflection quick, natural, and intuitive.",
-    imageSrc: "/iphone.png",
+    imageSrc: "/Recording.png",
     imageAlt: "Voice-first journaling illustration",
     fullWidth: true,
   },
@@ -20,7 +20,7 @@ const bentoItems = [
     title: "AI-Powered Emotional Insights",
     content:
       "Our advanced AI analyzes your voice entries to provide real-time emotional feedback, helping you understand your mood and thoughts.",
-    imageSrc: "/iphone.png",
+    imageSrc: "/DetailedArchive.png",
     imageAlt: "AI emotional analysis illustration",
     fullWidth: false,
   },
@@ -28,7 +28,7 @@ const bentoItems = [
     title: "Time-Based Prompts",
     content:
       "Receive personalized, time-based prompts to guide your reflections. Stay motivated with a new prompt each day, no matter where you are.",
-    imageSrc: "/iphone.png",
+    imageSrc: "/HomeScreen.png",
     imageAlt: "Time-based journaling prompts illustration",
     fullWidth: false,
   },
@@ -36,7 +36,7 @@ const bentoItems = [
     title: "Gamified Progress Tracking",
     content:
       "Maintain streaks, earn badges, and track your self-reflection journey. JOLO makes self-care engaging and rewarding.",
-    imageSrc: "/iphone.png",
+    imageSrc: "/CalendarView.png",
     imageAlt: "Gamified progress tracking illustration",
     fullWidth: true,
   },

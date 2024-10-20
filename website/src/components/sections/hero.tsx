@@ -59,9 +59,7 @@ export function Hero() {
             transition={{ duration: 0.8, delay: 0.7, ease: easeInOutCubic }}
             className="max-w-2xl mx-auto text-xl mb-8 font-medium text-balance"
           >
-            {siteConfig.name} transforms your speech into text instantly.
-            Perfect for quick note-taking, content creation, and capturing ideas
-            on-the-go.
+            {siteConfig.name} transforms your thoughts into words effortlessly. Perfect for capturing emotions, journaling, and reflecting on your day, all in real-time with JOLO
           </motion.p>
           <div className="flex justify-center mb-16">
             <motion.img
@@ -84,7 +82,7 @@ export function Hero() {
         </div>
         <div className="flex flex-nowrap items-center justify-center gap-4 sm:gap-8 h-auto sm:h-[500px] select-none">
           <motion.img
-            src="/iphone.png"
+            src="/Recording1.png"
             alt="iPhone"
             initial={{ opacity: 0, x: -200 }}
             animate={{ opacity: 1, x: 0 }}
@@ -93,7 +91,7 @@ export function Hero() {
             className="w-40 sm:w-64 h-[333px] sm:h-[500px] flex-shrink-0"
           />
           <motion.img
-            src="/iphone.png"
+            src="/HomeScreen.png"
             alt="iPhone"
             initial={{ opacity: 0, x: -100 }}
             animate={{ opacity: 1, x: 0 }}
@@ -102,7 +100,7 @@ export function Hero() {
             className="w-40 sm:w-64 h-[333px] sm:h-[500px] flex-shrink-0"
           />
           <motion.img
-            src="/iphone.png"
+            src="/DetailedArchive.png"
             alt="iPhone"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -111,7 +109,7 @@ export function Hero() {
             className="w-40 sm:w-64 h-[333px] sm:h-[500px] flex-shrink-0"
           />
           <motion.img
-            src="/iphone.png"
+            src="/CalendarView.png"
             alt="iPhone"
             initial={{ opacity: 0, x: 100 }}
             animate={{ opacity: 1, x: 0 }}
@@ -120,7 +118,7 @@ export function Hero() {
             className="w-40 sm:w-64 h-[333px] sm:h-[500px] flex-shrink-0"
           />
           <motion.img
-            src="/iphone.png"
+            src="/Archive1.png"
             alt="iPhone"
             initial={{ opacity: 0, x: 200 }}
             animate={{ opacity: 1, x: 0 }}
