@@ -1,129 +1,97 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, Dimensions } from 'react-native';
-// Import audio playback functionality
-import { Audio } from 'expo-av'; // Ensure to install expo-av if using Expo
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Modal, Button } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
+const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const generateCalendarDates = (month: number, year: number) => {
+  const dates: { day: number | null }[] = [];
+  const firstDay = new Date(year, month, 1).getDay();
+  const totalDays = new Date(year, month + 1, 0).getDate();
+
+  const adjustedFirstDay = (firstDay === 0 ? 6 : firstDay - 1);
+
+  for (let i = 0; i < adjustedFirstDay; i++) {
+    dates.push({ day: null });
+  }
+
+  for (let i = 1; i <= totalDays; i++) {
+    dates.push({ day: i });
+  }
+
+  return dates;
+};
 
 const CalendarScreen = () => {
-  const currentDate = new Date();
-  const formattedDate = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD format
-  const [selectedDay, setSelectedDay] = useState<string | null>(formattedDate);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [month] = useState(new Date().getMonth());
+  const [year] = useState(new Date().getFullYear());
+  const dates = generateCalendarDates(month, year);
+  const [selectedDate, setSelectedDate] = useState<number | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
-  const daysInMonth = (year: number, month: number) =>
-    new Date(year, month + 1, 0).getDate();
-
-  const generateDaysArray = (year: number, month: number) => {
-    const totalDays = daysInMonth(year, month);
-    const daysArray = [];
-    for (let day = 1; day <= totalDays; day++) {
-      const formatted = `${year}-${(month + 1).toString().padStart(2, '0')}-${day
-        .toString()
-        .padStart(2, '0')}`;
-      daysArray.push(formatted);
+  const handleDateClick = (day: number | null) => {
+    if (day) {
+      setSelectedDate(day);
+      setModalVisible(true);
     }
-    return daysArray;
   };
 
-  const [currentMonth, setCurrentMonth] = useState(currentDate.getMonth());
-  const [currentYear, setCurrentYear] = useState(currentDate.getFullYear());
-  const daysArray = generateDaysArray(currentYear, currentMonth);
+  const renderJOLOPopup = () => {
+    const mockPrompt = "What did you learn today?";
+    const mockResponse = "I learned about implementing modals in React Native.";
+    const mockKeywords = ["learning", "modals", "React Native"];
 
-  const handleDayPress = (day: string) => {
-    setSelectedDay(day);
-    setIsPlaying(false)
-  };
-
-  const handlePreviousMonth = () => {
-    setCurrentMonth((prev) => (prev === 0 ? 11 : prev - 1));
-    if (currentMonth === 0) setCurrentYear((prev) => prev - 1);
-  };
-
-  const handleNextMonth = () => {
-    setCurrentMonth((prev) => (prev === 11 ? 0 : prev + 1));
-    if (currentMonth === 11) setCurrentYear((prev) => prev + 1);
-  };
-
-  const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-
-  const screenWidth = Dimensions.get('window').width;
-  const buttonSize = screenWidth / 8 - 8; // Button size calculation to fit 7 columns
-
-  // Function to play audio
-  const playAudio = async () => {
-    //const { sound } = await Audio.Sound.createAsync(
-    //  require('./path/to/your/audio/file.mp3') // Replace with your audio file path
-    //);
-    //setSound(sound);
-    //await sound.playAsync();
-    setIsPlaying(!isPlaying);
-    //sound.setOnPlaybackStatusUpdate((status) => {
-      //if (status.didJustFinish) {
-        //setIsPlaying(false);
-      //}
-    //});
+    return (
+      <View style={styles.modalContent}>
+        <Text style={styles.joloTitle}>JOLO for {selectedDate} {new Date(year, month).toLocaleString('default', { month: 'long' })}</Text>
+        <Text style={styles.joloPrompt}>Prompt: {mockPrompt}</Text>
+        <Text style={styles.joloResponse}>Response: {mockResponse}</Text>
+        <Text style={styles.joloKeywords}>Keywords: {mockKeywords.join(", ")}</Text>
+        <View style={styles.voiceRecording}>
+          <Ionicons name="mic" size={24} color="#FFF" />
+          <Text style={styles.voiceText}>Play Recording</Text>
+        </View>
+        <Button title="Close" onPress={() => setModalVisible(false)} />
+      </View>
+    );
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={handlePreviousMonth}>
-          <Text style={styles.headerButton}>{'<'}</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerText}>
-          {`${monthNames[currentMonth]} ${currentYear}`}
-        </Text>
-        <TouchableOpacity onPress={handleNextMonth}>
-          <Text style={styles.headerButton}>{'>'}</Text>
-        </TouchableOpacity>
+        <Ionicons name="arrow-back" size={24} color="#FFF" />
+        <Text style={styles.headerText}>{`${year}`}</Text>
+        <Ionicons name="arrow-forward" size={24} color="#FFF" />
       </View>
-
-      <FlatList
-        data={daysArray}
-        numColumns={7}
-        keyExtractor={(item) => item}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.dayButton,
-              { width: buttonSize, height: buttonSize }, // Dynamically set size
-              item === selectedDay ? styles.selectedDayButton : null,
-            ]}
-            onPress={() => handleDayPress(item)}
-          >
-            <Text
-              style={[
-                styles.dayText,
-                item === selectedDay ? styles.selectedDayText : null,
-              ]}
-            >
-              {item.split('-')[2]} {/* Display only the day */}
-            </Text>
-          </TouchableOpacity>
-        )}
-      />
-
-      {selectedDay && (
-        <View style={styles.infoBox}>
-          <Text style={styles.infoText}>
-            On {new Date(selectedDay).toLocaleDateString(undefined, {
-    timeZone: 'UTC', // Ensure it uses UTC timezone
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })}, you were very excited about receiving your first internship offer.
-          </Text>
-          <TouchableOpacity onPress={playAudio} style={styles.audioButton}>
-            <Text style={styles.audioButtonText}>{isPlaying ? 'Playing...' : 'Audio Play'}</Text>
-          </TouchableOpacity>
-          <Text style={styles.transcribeText}>Transcribe of audio goes here.</Text>
+      <View style={styles.centeredContent}>
+        <Text style={styles.monthTitle}>{new Date(year, month).toLocaleString('default', { month: 'long' })} {year}</Text>
+        <View style={styles.daysOfWeekContainer}>
+          {daysOfWeek.map((day, index) => (
+            <Text key={index} style={styles.dayOfWeek}>{day}</Text>
+          ))}
         </View>
-      )}
-    </View>
+        <View style={styles.calendarGrid}>
+          {dates.map((date, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[styles.dateBox, date.day === new Date().getDate() ? styles.currentDate : null]}
+              onPress={() => handleDateClick(date.day)}
+            >
+              {date.day ? <Text style={styles.dateText}>{date.day}</Text> : null}
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          {renderJOLOPopup()}
+        </View>
+      </Modal>
+    </SafeAreaView>
   );
 };
 
@@ -131,67 +99,113 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
-    padding: 16,
+    paddingHorizontal: 10,
+    justifyContent: 'space-between',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 15,
+    paddingHorizontal: 20,
   },
-  headerButton: {
-    color: 'white',
-    fontSize: 24,
-    fontWeight: 'bold',
+  centeredContent: {
+    flex: 1,
+    justifyContent: 'center', // Center the calendar
   },
   headerText: {
-    color: 'white',
+    color: '#FFF',
     fontSize: 20,
-  },
-  dayButton: {
-    margin: 4,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 8,
-    backgroundColor: '#333',
-  },
-  selectedDayButton: {
-    backgroundColor: 'white',
-  },
-  dayText: {
-    color: 'white',
-    fontSize: 16,
-  },
-  selectedDayText: {
-    color: 'black',
     fontWeight: 'bold',
   },
-  infoBox: {
-    marginTop: 16,
-    padding: 12,
-    backgroundColor: '#222',
-    borderRadius: 8,
+  monthTitle: {
+    color: '#FFF',
+    fontSize: 22,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 10,
   },
-  infoText: {
-    color: 'white',
-    fontSize: 16,
-    marginBottom: 8,
+  daysOfWeekContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 5,
   },
-  audioButton: {
-    padding: 8,
-    backgroundColor: '#555',
-    borderRadius: 4,
-    alignItems: 'center',
-    marginVertical: 8,
-  },
-  audioButtonText: {
-    color: 'white',
-    fontSize: 16,
-  },
-  transcribeText: {
-    color: 'white',
+  dayOfWeek: {
+    color: '#AAA',
     fontSize: 14,
+    width: `${100 / 7}%`,
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  calendarGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginRight: 2,
+    paddingHorizontal: 5,
+  },
+  dateBox: {
+    width: `${100 / 7}%`,
+    aspectRatio: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 5,
+    borderRadius: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  dateText: {
+    color: '#FFF',
+    fontSize: 14,
+  },
+  currentDate: {
+    backgroundColor: '#FFF',
+    borderColor: '#FFF',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  modalContent: {
+    backgroundColor: '#222',
+    borderRadius: 10,
+    padding: 20,
+    width: '80%',
+  },
+  joloTitle: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  joloPrompt: {
+    color: '#FFF',
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  joloResponse: {
+    color: '#FFF',
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  joloKeywords: {
+    color: '#FFF',
+    fontSize: 14,
+    fontStyle: 'italic',
+    marginBottom: 15,
+  },
+  voiceRecording: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 10,
+    borderRadius: 20,
+    marginBottom: 15,
+  },
+  voiceText: {
+    color: '#FFF',
+    fontSize: 14,
+    marginLeft: 10,
   },
 });
 
