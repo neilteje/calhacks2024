@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, SafeAreaView, Modal, Button, ScrollView, StyleSheet } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
+import { createClient } from '@deepgram/sdk';
 
 const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -23,6 +24,42 @@ const generateCalendarDates = (month: number, year: number) => {
   return dates;
 };
 
+const fetchDeepgramSummary = async (audioUrl) => {
+  try {
+    const deepgramApiKey = process.env.DEEPGRAM_API_KEY;
+    const deepgram = createClient(deepgramApiKey);
+
+    const { result, error } = await deepgram.transcription.preRecorded({
+      url: audioUrl,
+    }, {
+      punctuate: true,
+      smart_format: true,
+      summarize: true,
+      paragraphs: true,
+      utterances: true,
+      keywords: ['happy', 'sad', 'excited'],
+      diarize: true,
+      sentiment: true,
+      language: 'en',
+    });
+
+    if (error) {
+      console.error("Deepgram API Error:", error);
+      return null;
+    }
+
+    // Extract summary or transcription details
+    const summary = result.results.summary.text;
+    const transcript = result.results.transcripts[0]?.text || "No transcript available.";
+    const sentiment = result.results.sentiment.average;
+
+    return { summary, transcript, sentiment };
+  } catch (error) {
+    console.error("Error during Deepgram Summarization:", error);
+    return null;
+  }
+};
+
 const CalendarScreen = () => {
   const [month] = useState(new Date().getMonth());
   const [year] = useState(new Date().getFullYear());
@@ -31,6 +68,8 @@ const CalendarScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [dailyPrompt, setDailyPrompt] = useState('');
   const [transcription, setTranscription] = useState('');
+  const [summary, setSummary] = useState('');
+  const [sentiment, setSentiment] = useState('');
 
   const fetchDailyPrompt = useCallback(async (day: number) => {
     try {
@@ -39,14 +78,25 @@ const CalendarScreen = () => {
       const questionForDay = response.data.find(
         (q: any) => new Date(q.createdAt).toISOString().split('T')[0] === selectedDateString
       );
+
       if (questionForDay) {
         setDailyPrompt(questionForDay.text);
-        // Fetch transcription for the selected day (mocked for now)
-        setTranscription("My favorite movie of all time has to be Lion King, *noise* I think the dynamic between the characters is unmatched and I was deeply impacted by this movie.");
+
+        // Fetch transcription and summary using Deepgram (Mocked example)
+        const audioUrl = 'https://example.com/user-private-audio.mp3';
+        const deepgramResponse = await fetchDeepgramSummary(audioUrl);
+
+        if (deepgramResponse) {
+          setSummary(deepgramResponse.summary);
+          setTranscription(deepgramResponse.transcript);
+          setSentiment(`Sentiment: ${deepgramResponse.sentiment > 0 ? 'Positive' : 'Negative'}`);
+        }
       } else {
         setDailyPrompt("No prompt available for this date.");
         setTranscription("");
+        setSummary("");
       }
+
       setModalVisible(true);
     } catch (error) {
       console.error("Error fetching prompt:", error);
@@ -72,9 +122,11 @@ const CalendarScreen = () => {
       <View style={styles.modalContent}>
         <Text style={styles.joloTitle}>JOLO for {selectedDate} {new Date(year, month).toLocaleString('default', { month: 'long' })} {year}</Text>
         <Text style={styles.joloPrompt}>Prompt: {dailyPrompt}</Text>
+        {summary && <Text style={styles.joloSummary}>Summary: {summary}</Text>}
         {transcription && (
           <>
             <Text style={styles.joloTranscription}>Transcript: {transcription}</Text>
+            <Text style={styles.joloSentiment}>{sentiment}</Text>
             <View style={styles.voiceRecording}>
               <Ionicons name="mic" size={24} color="#FFF" />
               <Text style={styles.voiceText}>Play Recording</Text>
@@ -82,30 +134,6 @@ const CalendarScreen = () => {
           </>
         )}
         <Button title="Close" onPress={() => setModalVisible(false)} />
-      </View>
-    );
-  };
-
-  const renderMissedJOLOSection = () => {
-    // For simplicity, showing the last 7 days as 'missed' entries
-    const missedDays = dates
-      .filter(date => date.day && date.day < new Date().getDate())
-      .slice(-7); // Adjust as needed
-
-    return (
-      <View style={styles.missedJOLOContainer}>
-        <Text style={styles.missedJOLOTitle}>Missed Days:</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {missedDays.map((date, index) => (
-            <TouchableOpacity 
-              key={index} 
-              style={styles.missedJOLOBox}
-              onPress={() => handleDateClick(date.day)}
-            >
-              <Text style={styles.missedJOLOText}>{date.day} {new Date(year, month).toLocaleString('default', { month: 'short' })}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
       </View>
     );
   };
@@ -136,10 +164,6 @@ const CalendarScreen = () => {
           ))}
         </View>
       </View>
-
-      {/* Missed JOLO Section */}
-      {renderMissedJOLOSection()}
-
       <Modal
         animationType="slide"
         transparent={true}
@@ -154,38 +178,23 @@ const CalendarScreen = () => {
   );
 };
 
-
 const styles = StyleSheet.create({
+  joloSummary: {
+    color: '#FFF',
+    fontSize: 16,
+    marginBottom: 8,
+    fontWeight: 'bold',
+  },
   joloTranscription: {
     color: '#FFF',
     fontSize: 16,
     marginBottom: 10,
     fontStyle: 'italic',
   },
-  missedJOLOContainer: {
-    padding: 15,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 10,
-    marginTop: 20,
-  },
-  missedJOLOTitle: {
-    color: '#FFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  missedJOLOBox: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 10,
-    marginRight: 10,
-    alignItems: 'center',
-  },
-  missedJOLOText: {
+  joloSentiment: {
     color: '#FFF',
     fontSize: 14,
+    marginBottom: 5,
   },
   container: {
     flex: 1,
@@ -202,7 +211,7 @@ const styles = StyleSheet.create({
   },
   centeredContent: {
     flex: 1,
-    justifyContent: 'center', // Center the calendar
+    justifyContent: 'center',
   },
   headerText: {
     color: '#FFF',
