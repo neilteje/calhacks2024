@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, SafeAreaView } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, SafeAreaView, ScrollView } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
+import Vapi from '@vapi-ai/react-native';
 import SoundPulseVisualizer from '../components/SoundPulseVisualizer';
 
 const audioRecorderPlayer = new AudioRecorderPlayer();
+const vapi = new Vapi("248735ad-a5b8-4690-bfb3-e607fc70026d");
 
 const getGreeting = (): string => {
   const currentHour = new Date().getHours();
@@ -25,22 +26,40 @@ const getDate = (): string => {
 
 const HomeScreen = () => {
   const [recording, setRecording] = useState(false);
+  const [sessionActive, setSessionActive] = useState(false);
   const [decibelLevel, setDecibelLevel] = useState(0);
+  const [_responseText, setResponseText] = useState("");
+
+  useEffect(() => {
+    // VAPI event listeners
+    vapi.on('call-start', () => console.log('Call has started'));
+    vapi.on('call-end', () => console.log('Call has ended'));
+    vapi.on('message', (message) => {
+      if (message && message.content) {
+        setResponseText((prev) => `${prev}\nAssistant: ${message.content}`);
+      }
+    });
+    vapi.on('error', (e) => console.error(e));
+
+    // Cleanup on unmount
+    return () => {
+      vapi.stop();
+    };
+  }, []);
 
   const startRecording = async () => {
     try {
       audioRecorderPlayer.startRecorder().then(() => {
-          audioRecorderPlayer.addRecordBackListener((e) => {
-            setDecibelLevel(e.currentMetering || 0);
-          });
+        audioRecorderPlayer.addRecordBackListener((e) => {
+          setDecibelLevel(e.currentMetering || 0);
+          console.log("Decibel Level:", e.currentMetering); 
         });
-        setRecording(true);
-      }
-    catch (error) {
+      });
+      setRecording(true);
+    } catch (error) {
       console.error('Failed to start recording', error);
     }
   };
-  
 
   const stopRecording = async () => {
     try {
@@ -51,6 +70,16 @@ const HomeScreen = () => {
     } catch (error) {
       console.error('Failed to stop recording', error);
     }
+  };
+
+  const startAssistant = () => {
+    vapi.start("7ee9572b-2391-4fb6-ae4b-f968dadcd3be"); 
+    setSessionActive(true);
+  };
+
+  const stopAssistant = () => {
+    vapi.stop();
+    setSessionActive(false);
   };
 
   return (
@@ -96,6 +125,14 @@ const HomeScreen = () => {
             <Text style={styles.recordButtonText}>{recording ? 'Stop Recording' : 'Tap to Record'}</Text>
           </TouchableOpacity>
         </View>
+
+        {/* VAPI Assistant Button */}
+        <TouchableOpacity 
+          style={styles.vapiButton} 
+          onPress={sessionActive ? stopAssistant : startAssistant}
+        >
+          <Ionicons name="chatbubble-ellipses-outline" size={28} color="#FFF" />
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -120,7 +157,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   logo: {
-    width: 100, // Make logo bigger
+    width: 100,
     height: 40,
     resizeMode: 'contain',
   },
@@ -206,6 +243,17 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 16,
     marginLeft: 10,
+  },
+  vapiButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255, 0, 0, 0.7)', // Red background for visibility
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

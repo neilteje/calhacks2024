@@ -42,7 +42,7 @@ const CalendarScreen = () => {
 
     return (
       <View style={styles.modalContent}>
-        <Text style={styles.joloTitle}>JOLO for {selectedDate} {new Date(year, month).toLocaleString('default', { month: 'long' })}</Text>
+        <Text style={styles.joloTitle}>JOLO for {selectedDate} {new Date(year, month).toLocaleString('default', { month: 'long' })} {2024}</Text>
         <Text style={styles.joloPrompt}>Prompt: {mockPrompt}</Text>
         <Text style={styles.joloResponse}>Response: {mockResponse}</Text>
         <Text style={styles.joloKeywords}>Keywords: {mockKeywords.join(", ")}</Text>

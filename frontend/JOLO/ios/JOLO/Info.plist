@@ -24,6 +24,14 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>JOLO App needs camera access for VAPI</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>JOLO App needs microphone access for VAPI</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>voip</string>
+	</array>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app requires access to the microphone.</string>
 	<key>NSDocumentsFolderUsageDescription</key>
