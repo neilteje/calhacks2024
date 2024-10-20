@@ -5,6 +5,7 @@ import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import Vapi from '@vapi-ai/react-native';
 import SoundPulseVisualizer from '../components/SoundPulseVisualizer';
 import axios from 'axios';
+import WebSocket from 'ws';
 
 const audioRecorderPlayer = new AudioRecorderPlayer();
 const vapi = new Vapi("248735ad-a5b8-4690-bfb3-e607fc70026d");
@@ -29,7 +30,7 @@ const HomeScreen = () => {
   const [recording, setRecording] = useState(false);
   const [sessionActive, setSessionActive] = useState(false);
   const [decibelLevel, setDecibelLevel] = useState(0);
-  const [_responseText, setResponseText] = useState("");
+  const [_responseText, _setResponseText] = useState("");
   const [todaysQuestion, setTodaysQuestion] = useState("");
 
   useEffect(() => {
@@ -58,7 +59,7 @@ const HomeScreen = () => {
     vapi.on('call-end', () => console.log('Call has ended'));
     vapi.on('message', (message) => {
       if (message && message.content) {
-        setResponseText((prev) => `${prev}\nAssistant: ${message.content}`);
+        setResponseText((prev) => ${prev}\nAssistant: ${message.content});
       }
     });
     vapi.on('error', (e) => console.error(e));
@@ -83,6 +84,47 @@ const HomeScreen = () => {
     }
   };
 
+  const startRecordingTranscription = async () => {
+    try {
+      const websocket = new WebSocket(${EVI_WS_URL}?api_key=YOUR_API_KEY);
+
+      websocket.onopen = () => {
+        console.log("Connected to EVI WebSocket");
+        setWs(websocket);
+
+        // Start recording audio
+        audioRecorderPlayer.startRecorder().then(() => {
+          audioRecorderPlayer.addRecordBackListener(async (e) => {
+            if (e.currentMetering) {
+              const audioChunk = new Blob([e.buffer], { type: 'audio/wav' });
+              websocket.send(audioChunk); // Stream audio to EVI
+            }
+          });
+        });
+      };
+
+      websocket.onmessage = (message) => {
+        const { data } = message;
+        const response = JSON.parse(data);
+        if (response.transcription) {
+          setTranscription(response.transcription);
+        }
+      };
+
+      websocket.onerror = (error) => {
+        console.error("WebSocket Error:", error);
+      };
+
+      websocket.onclose = () => {
+        console.log("WebSocket Closed");
+      };
+
+      setRecording(true);
+    } catch (error) {
+      console.error('Failed to start recording:', error);
+    }
+  };
+
   const stopRecording = async () => {
     try {
       await audioRecorderPlayer.stopRecorder();
@@ -93,6 +135,19 @@ const HomeScreen = () => {
       console.error('Failed to stop recording', error);
     }
   };
+
+  const stopLiveTranscription = async () => {
+    try {
+      await audioRecorderPlayer.stopRecorder();
+      audioRecorderPlayer.removeRecordBackListener();
+      if (ws) {
+        ws.close(); // Close WebSocket connection
+      }
+      setRecording(false);
+    } catch (error) {
+      console.error('Failed to stop recording', error);
+    }
+ };
 
   const startAssistant = async () => {
     try {
@@ -162,9 +217,18 @@ const HomeScreen = () => {
           <Text style={styles.journalText}>Journal out Loud before today fades away</Text>
           <Text style={styles.timeLeft}>12 hours 44 minutes left</Text>
         </View>
-        
+
         <View style={styles.recordingSection}>
           <SoundPulseVisualizer decibelLevel={decibelLevel} />
+
+          {/* Live Transcription Box */}
+          <View style={styles.transcriptionBox}>
+            <Text style={styles.transcriptionText}>
+              {/* Replace this with dynamic transcription text */}
+              I think that I can drastically make my life easier by just improving on my morning routine 
+            </Text>
+          </View>
+
           <TouchableOpacity 
             style={styles.recordButton} 
             onPress={recording ? stopRecording : startRecording}
@@ -191,6 +255,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+  },
+  transcriptionBox: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 10,
+    borderRadius: 10,
+    width: '90%',
+    alignSelf: 'center',
+    marginBottom: 20,
+    minHeight: 50,
+  },
+  transcriptionText: {
+    color: '#FFF',
+    fontSize: 14,
   },
   scrollContainer: {
     alignItems: 'center',
@@ -295,7 +372,7 @@ const styles = StyleSheet.create({
   },
   vapiButton: {
     position: 'absolute',
-    bottom: -60,
+    bottom: -30,
     right: 20, 
     width: 60,
     height: 60,

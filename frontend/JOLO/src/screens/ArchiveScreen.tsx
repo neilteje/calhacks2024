@@ -118,7 +118,7 @@ const PopUpMenu = (props: { selectedEntry: any, modalVisible: any, closeModal: a
           >
             <Text style={styles.greeting}>{props.selectedEntry.title}</Text>
             <Text style={styles.description}>
-              Lorem ipsum dolor sit amet consectetur. In lorem pretium nec enim nisl urna. Justo arcu leo sed a sagittis non dictumst tellus.
+              JOLO or write down your thoughts before the time expires today. Be as detailed as possible, and we'll handle the rest!
             </Text>
             <JournalEntry />
             <JournalEntry />
